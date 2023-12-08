@@ -1,11 +1,16 @@
 library(haven)
 library(tidyverse)
 
-#files: B6, B8, B10
+#files:  B6, B8, B10
 
 b6<-haven::read_sav("/Volumes/TOSHIBA EXT/LSAC/9.1_C2 General Release/Survey data/SPSS/lsacgrb6.sav")
 b8<-haven::read_sav("/Volumes/TOSHIBA EXT/LSAC/9.1_C2 General Release/Survey data/SPSS/lsacgrb8.sav")
 b10<-haven::read_sav("/Volumes/TOSHIBA EXT/LSAC/9.1_C2 General Release/Survey data/SPSS/lsacgrb10.sav")
+
+b6|>filter(dpc59b1==12)|>
+  count(cpc06a1)
+
+#files
 
 
 
@@ -105,6 +110,13 @@ b6<-left_join(b6, b6_outcome)
 b6%>%write_rds("b6_outcomes.rds")
 b6%>%write_sav("b6_outcomes.sav")
 
+b6<-read_rds("b6_outcomes.rds")
+b6_test<-haven::read_sav("b6_outcomes.sav")
+
+b6_test$academic_index
+
+b6$academic_index
+
 #---------
 #b8
 
@@ -203,3 +215,37 @@ b8<-left_join(b8, b8_outcome)
 
 b8%>%write_rds("b8_outcomes.rds")
 b8%>%write_sav("b8_outcomes.sav")
+
+#------------
+#merging and selecting scores for waves 6-10
+b8_merge<-b8|>mutate(
+  wave=8
+)|>
+  select(
+#outcome var
+    numeracy_score,
+    literacy_score,
+    academic_score
+  )
+
+b6_merge<-b6|>mutate(
+  wave=6
+)|>
+  select(
+#outcome var
+    numeracy_score,
+    literacy_score,
+    academic_score
+  )
+
+b10_merge<-b10|>mutate(
+  wave=10
+)|>
+  select(
+#outcome var
+    numeracy_score,
+    literacy_score,
+    academic_score
+  )
+
+

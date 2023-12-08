@@ -1,0 +1,799 @@
+---
+title: "pre-analysis"
+format: html
+toc: true
+toc-location: body
+toc-depth: 3
+code-fold: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+```{r}
+library(tidyverse)
+
+
+library(tidymodels)
+library(lubridate)
+library(DataExplorer)
+library(caret)
+library(recipeselectors)
+library(psych)
+library(gt)
+
+
+
+theme_set(theme_minimal())
+options("scipen"=99, digits=2)
+```
+
+
+```{r}
+#read sav file
+data<-haven::read_sav("/Volumes/TOSHIBA EXT/LSAC/Project_data/lsacgrb0246810 merged sorted by hicid_20230918.sav")
+
+#create a variable b_ses based on the quartiles calculation
+data$b_ses = cut(data$bsep2, 
+              breaks = quantile(data$bsep2, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE), 
+              labels = c('Q1', 'Q2', 'Q3', "Q4")
+            )
+
+data$c_ses = cut(data$csep2, 
+              breaks = quantile(data$csep2, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE), 
+              labels = c('Q1', 'Q2', 'Q3', "Q4")
+            )
+
+data$d_ses = cut(data$dsep2, 
+              breaks = quantile(data$dsep2, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE), 
+              labels = c('Q1', 'Q2', 'Q3', "Q4")
+            )
+data$e_ses = cut(data$esep2, 
+              breaks = quantile(data$esep2, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE), 
+              labels = c('Q1', 'Q2', 'Q3', "Q4")
+            )
+data$f_ses = cut(data$fsep2, 
+              breaks = quantile(data$fsep2, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE), 
+              labels = c('Q1', 'Q2', 'Q3', "Q4")
+            )
+#
+
+data|>count(epc05a, sort=TRUE)	
+
+res<-data|>
+  select(
+    hicid,
+#childcare    centre =  Type - day care centre
+apc05a, #w1
+bpc05a,	#w2
+cpc05a, #w3
+
+#ses
+b_ses,
+
+#learning outcomes,
+fliteracy_index,
+fnumeracy_index,
+facademic_index,
+#fnumeracy_score,
+#fliteracy_score,
+#facademic_score,
+    
+    #b8
+#    eliteracy,
+#enumeracy,
+#eacademic,
+eliteracy_index,
+enumeracy_index,
+eacademic_index,
+#enumeracy_score,
+#eliteracy_score,
+#eacademic_score,
+
+    #b6
+#    dliteracy,
+#dnumeracy,
+dliteracy_index,
+dnumeracy_index,
+#dnumeracy_score,
+#dliteracy_score,
+#dacademic,
+dacademic_index #,
+#dacademic_score,
+    
+
+
+  )
+res
+
+names(res) <- sub("^(.{1})", "\\1_", names(res))
+names(res)
+
+
+res|>write_csv("res.csv")
+```
+
+
+#anova
+
+```{r}
+test<-res|>
+  pivot_longer(
+    cols=f_literacy_index:d_academic_index,
+    names_to = c("wave", "variable"),
+    names_sep = "_",
+    values_to = "score"
+    )
+
+test<-test|>
+  mutate(
+    wave=case_when(
+      wave=="d"~"4",
+      wave=="e"~"5",
+      wave=="f"~"6",
+      TRUE~wave
+    )
+    )
+
+library(plotly)
+ ggplot(test, aes(x=wave, y=score, group= b__ses
+                    )) +
+  geom_boxplot() +
+  ggtitle("Boxplot by wave") +
+  ylab("Values") +
+  xlab("Group") +
+   facet_wrap(~variable, scales = "free")
+ 
+ test|>filter(
+   variable=="academic"
+ )|>
+   filter(
+     b__ses!="NA")|>
+ ggplot(aes(x = wave, y = score)) + 
+  geom_boxplot(aes(color = b__ses)) +
+  geom_jitter(aes(color = b__ses), width = .25) +
+viridis:: scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+ 
+  test|>filter(
+   variable=="academic"
+ )|>
+   filter(
+     b__ses!="NA")|>
+ ggplot(aes(x = wave, y = score)) + 
+  geom_boxplot(aes(color = b__ses)) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+ 
+  #childcare ware 1 
+  test|>filter(
+   variable=="academic"
+ )|>
+  # filter(
+#     b__ses!="NA")|>
+ ggplot(aes(x = wave, y = score)) + 
+  geom_boxplot(aes(color = as_factor(a_pc05a)))  +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+  
+  #childcare ware 2 
+    test|>filter(
+   variable=="academic"
+ )|>
+   filter(
+     b__ses=="Q1"| b__ses=="Q2")|>
+ ggplot(aes(x = wave, y = score)) + 
+  geom_boxplot(aes(color = as_factor(a_pc05a)))  +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+    
+
+test|>filter(
+   variable=="academic"
+ )|>
+   filter(
+     b__ses=="Q1"| b__ses=="Q2")|>
+ ggplot(aes(x = wave, y = score)) + 
+  geom_boxplot(aes(color = as_factor(b_pc05a)))  +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+
+
+test|>filter(
+   variable=="academic"
+ )|>
+   filter(
+     b__ses=="Q4"| b__ses=="Q4")|>
+ ggplot(aes(x = wave, y = score)) + 
+  geom_boxplot(aes(color = as_factor(c_pc05a)))  +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+      
+```
+
+
+```{r}
+#install.packages("emmeans")
+#install.packages("afex")
+
+#Call the afex package
+library(afex)
+
+
+test_data<-test|>filter(
+   variable=="academic"
+ )
+
+## ses
+
+#Perform the ANOVA
+model_1 <- aov_car(score ~ (wave*b__ses) + Error(h_icid/wave), 
+                    data = test_data)
+
+
+#Get the output
+summary(model_1)
+
+#Call emmeans
+library(emmeans)
+library(viridis)
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~b__ses)
+res_wave_group <- emmeans(model_1, specs = ~wave*b__ses)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = b__ses, group = b__ses)) +
+  geom_point(aes(color = b__ses)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+
+##childcare
+
+#Perform the ANOVA
+model_2 <- aov_car(score ~ (wave*a_pc05a) + Error(h_icid/wave), 
+                    data = test_data)
+
+
+#Get the output
+summary(model_2)
+
+#Call emmeans
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_2, specs = ~wave)
+res_group <- emmeans(model_2, specs = ~a_pc05a)
+res_wave_group <- emmeans(model_2, specs = ~wave*a_pc05a)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = a_pc05a, group = a_pc05a)) +
+  geom_point(aes(color = a_pc05a)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()
+
+
+```
+
+
+
+
+
+
+
+#depression:
+#parental mental health w1-8
+# aak6s	bak6s	cak6s	dak6s	eak6s	fek6s	gak6s	dak6s
+
+
+
+#parental warmth w1-8
+# aawarm	bawarm	cawarm	dawarm	eawarm	fawarm	gawarm	hawarm
+
+
+
+#merge outcomes:
+
+#B10 academic variables in the merged file are:
+#fliteracy_index
+#fnumeracy_index
+#facademic_index
+#fnumeracy_score
+#fliteracy_score
+#facademic_score
+
+#B8 academic variables:
+#eliteracy
+#enumeracy
+#eacademic
+#eliteracy_index
+#enumeracy_index
+#eacademic_index
+#enumeracy_score
+#eliteracy_score
+#eacademic_score
+
+#B6 academic variables
+#dliteracy
+#dnumeracy
+#dliteracy_index
+#dnumeracy_index
+#dnumeracy_score
+#dliteracy_score
+#dacademic
+#dacademic_index
+#dacademic_score
+
+
+data_ext<-data|>
+  select(
+    #b10
+    fliteracy_index,
+fnumeracy_index,
+facademic_index,
+fnumeracy_score,
+fliteracy_score,
+facademic_score,
+    
+    #b8
+    eliteracy,
+enumeracy,
+eacademic,
+eliteracy_index,
+enumeracy_index,
+eacademic_index,
+enumeracy_score,
+eliteracy_score,
+eacademic_score,
+
+    #b6
+    dliteracy,
+dnumeracy,
+dliteracy_index,
+dnumeracy_index,
+dnumeracy_score,
+dliteracy_score,
+dacademic,
+dacademic_index,
+dacademic_score,
+
+#parental mental health w1-8
+ aak6s,	bak6s,	cak6s,	dak6s,	eak6s,	fek6s,	gak6s,	dak6s,
+
+#parental warmth w1-8
+aawarm,	bawarm,	cawarm,	dawarm,	eawarm,	fawarm,	gawarm,	hawarm,
+
+#Z-score for socioeconomic position among all families
+bsep,
+bsep2,
+csep,
+csep2,
+dsep,
+dsep2,
+esep2,
+fsep2,
+gsep2,
+hsep2,
+
+#ses
+b_ses,
+c_ses,
+d_ses,
+e_ses,
+f_ses,
+
+#seifa
+bcnfseo,
+ccnfseo,
+dcnfseo,
+ecnfseo2,
+ecnfseo2d,
+fcnfseo2,
+fcnfseo2d,
+gcnfseo2,
+gcnfseo2d,
+hcnfseo2,
+hcnfseo2d,
+
+
+#started prep earlier in wave3
+cpc05m,
+
+#childcare
+#w3 - w4: 2 yrs
+#One year prior w4: 12 Pre-year 1 program; 13 Year 1 (Grade 1); 16 Year 2 (Grade 2)
+dpc59b1 # childcare attendance : 12 - look at 2yrs before, 13 - at 3yrs before, 16 - at 4 yrs before 
+
+#Program/care type 1 yr before school
+#1 Day care centre; 11 Pre-school; 12 Pre-Year 1; 13 Year 1
+case_when(
+  dpc59b1==12 & cpc06a1==1 ~ "childcare",
+  
+)
+#demographics
+
+
+  )
+
+
+    
+  )
+
+
+data|>filter(dpc59b1==12)|>
+  count(cpc06a1)
+
+#Quartile 1: Z-score < -0.675
+#Quartile 2: -0.675 ≤ Z-score < 0
+#Quartile 3: 0 ≤ Z-score < 0.675
+#Quartile 4: Z-score ≥ 0.675
+
+res_b<-quantile(data$bsep, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE) 
+
+
+
+class(data$gsep2)
+
+
+data|>count(data$b_ses, sort=TRUE)
+data$bsep
+
+#select only children who did not attend prep in wave3 = started prep in wave 4
+data_ext_childcare<-data_ext|>filter(cpc05m==0)
+
+```
+
+```{r}
+#SES on academic variables - two-way repeated measures ANOVA
+
+
+```
+
+
+
+
+## Data analysis 
+
+### Description of the data re statistical aspect:
+  - variables and measurement
+  - transformation of variables, including categories
+  
+```{r}
+model_data<-data_clean%>%
+  select(
+    cvdrisk_index_merged,
+age_categ,
+gender,
+waiting_time_yrs,
+edu_level_categ,
+indig,
+sleep_categ,
+PHQ_cat,
+paincat,
+income_group
+  )
+
+model_data<-model_data%>%na.omit()%>%mutate(across(everything(), factor))
+
+describe(model_data)%>%gt()
+
+ststs<-skimr::skim(model_data)
+
+tf <- tempfile(fileext = "file1.docx")
+
+library(officer)
+library(flextable)
+flextable(ststs)%>%save_as_docx(path = "stats.docx")
+```
+  
+Data stats  
+  
+```{r}
+plot_intro(model_data)
+```
+
+Values in data
+
+```{r}
+plot_bar(model_data)
+```
+```{r}
+
+model_data %>%
+  pivot_longer(age_categ:income_group) %>%
+  ggplot(aes(y = value, fill = cvdrisk_index_merged)) +
+  geom_bar(position = "fill") +
+  facet_wrap(vars(name), scales = "free", ncol = 2) +
+  labs(x = NULL, y = NULL, fill = NULL)
+```
+
+
+
+
+Intro correlation
+
+```{r}
+plot_correlation(model_data)
+
+
+```
+  
+  
+### Initial model - imbalance data
+
+#### V-Fold Cross-Validation - no repeats
+
+V-fold cross-validation (also known as k-fold cross-validation) randomly splits the data into V groups of roughly equal size (called "folds"). A resample of the analysis data consists of V-1 of the folds while the assessment set contains the final fold. In basic V-fold cross-validation (i.e. no repeats), the number of resamples is equal to V. (v=10)
+
+```{r}
+set.seed(123)
+
+data_split<-initial_split(model_data, strata=cvdrisk_index_merged)
+data_train<-training(data_split)
+data_test<-testing(data_split)
+  
+data_folds <- vfold_cv(data_train, v = 10, strata = cvdrisk_index_merged)
+data_folds
+```
+
+Metrics used to assess the model
+
+
+```{r eval=FALSE}
+data_metrics <- metric_set(mn_log_loss, roc_auc, accuracy, sensitivity, specificity)
+```
+
+```{r}
+
+data_rec <- recipe(cvdrisk_index_merged ~ ., data = data_train) %>%
+  step_nzv(all_predictors())
+
+data_rec
+prep(data_rec)
+```
+ **Bagged tree model** 
+ 
+[ Bagging ensemble model](https://baguette.tidymodels.org/)
+
+```{r}
+library(baguette)
+
+bag_spec <-
+  bag_tree(min_n = 10) %>%
+  set_engine("rpart", times = 25) %>%
+  set_mode("classification")
+
+imb_wf <-
+  workflow() %>%
+  add_recipe(data_rec) %>%
+  add_model(bag_spec)
+
+imb_fit <- fit(imb_wf, data = data_train
+               )
+imb_fit
+```
+ 
+Importance of variable is shown in the `value`: 
+
+Most important ones:
+
+-edu_level_categ
+
+- PHQ_cat
+
+- age_categ
+
+interestingly - paincat has the lowest importance
+
+
+**Model fitting using resamples**
+
+```{r}
+doParallel::registerDoParallel()
+
+set.seed(123)
+
+data_metrics <- metric_set(mn_log_loss, roc_auc, pr_auc, accuracy)
+
+imb_rs <-
+  fit_resamples(
+    imb_wf,
+    resamples = data_folds,
+    metrics=data_metrics
+  )
+
+collect_metrics(imb_rs)
+```
+
+### Addressing class imbalances
+
+Class imbalance refers to the cases where the distribution of classes in the data is uneven, or significantly skewed. In this case a particular class has a larger number of data points compared to other classes. 
+Such imbalance generally leads to results biased towards the majority class which may show higher accuracy in prediction most of the time, while the minority class tends to show poor performance. In severe cases minority class can be completely ignored. This represent a serious issue as generally, it is the minority class is the class of interest, e.g. critical rare events or anomalies.
+
+While class imbalances is a challenge in machine learning tasks, such cases are quite common in practice and there are different techniques to address them. These techniques include resampling, cost-sensitive learning, algorithmic techniques (i.e. the use of algorithms that are capable of handing class imbalances, such as decision trees or ensember learning approaches), data augmentation approaches (e.g. under/oversampling) and anomaly detection. 
+
+Class imbalances approaches - brief statement
+
+Class imbalances approaches used in the study - brief statement
+
+Applying SMOTE Algorithm: generates new examples of the minority class using nearest neighbors of these cases.
+
+```{r}
+library(themis)
+bal_rec <- data_rec %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_smote(cvdrisk_index_merged)%>%
+  step_normalize(all_predictors())
+
+bal_wf <-
+  workflow() %>%
+  add_recipe(bal_rec) %>%
+  add_model(bag_spec)
+
+set.seed(234)
+bal_rs <-
+  fit_resamples(
+    bal_wf,
+    resamples = data_folds,
+    metrics = data_metrics
+  )
+
+collect_metrics(bal_rs)
+
+```
+
+### random forest
+
+
+
+```{r}
+library(stacks)
+ctrl_grid <- control_stack_grid()
+
+rand_forest_spec <- 
+  rand_forest(
+    mtry = tune(),
+    min_n = tune(),
+    trees = 500
+  ) %>%
+  set_mode("classification") %>%
+  set_engine("ranger")
+
+rand_forest_wflow <-
+  workflow() %>%
+  add_recipe(bal_rec)%>%
+  add_model(rand_forest_spec)
+
+rand_forest_res <- 
+  tune_grid(
+    object = rand_forest_wflow, 
+    resamples = data_folds, 
+    grid = 10,
+    control = ctrl_grid
+  )
+
+collect_metrics(rand_forest_res)%>% arrange(.metric, desc(mean))
+
+
+```
+
+```{r}
+autoplot(rand_forest_res)
+```
+### Neural network model 
+
+```{r}
+nnet_spec <-
+  mlp(hidden_units = tune(), penalty = tune(), epochs = tune()) %>%
+  set_mode("classification") %>%
+  set_engine("nnet")
+
+
+nnet_wflow <- 
+  workflow() %>%
+  add_recipe(bal_rec)%>%
+  add_model(nnet_spec) 
+
+nnet_res <-
+  tune_grid(
+    object = nnet_wflow, 
+    resamples = data_folds, 
+    grid = 10,
+    control = ctrl_grid
+  )
+
+collect_metrics(nnet_res)%>% arrange(.metric, desc(mean))
+```
+
+```{r}
+autoplot(nnet_res)
+```
+
+Stacking results
+
+```{r}
+model_st <- 
+  # initialize the stack
+  stacks() %>%
+  # add candidate members
+  add_candidates(rand_forest_res) %>%
+  add_candidates(nnet_res) %>%
+  # determine how to combine their predictions
+  blend_predictions() %>%
+  # fit the candidates with nonzero stacking coefficients
+  fit_members()
+
+model_st
+```
+
+
+
+```{r}
+
+autoplot(model_st)
+```
+
+
+
+```{r}
+
+autoplot(model_st, type = "members")
+```
+
+
+
+```{r}
+
+autoplot(model_st, type = "weights")
+```
+
+### Evaluating on test data
+
+```{r}
+
+data_pred <-
+  data_test %>%
+  bind_cols(predict(model_st, ., type = "prob"))
+```
+
+```{r}
+yardstick::roc_auc(
+  data_pred,
+  truth = cvdrisk_index_merged,
+  contains(".pred_")
+  )
+```
+```{r}
+
+data_pred <-
+  data_test %>%
+  select(cvdrisk_index_merged) %>%
+  bind_cols(
+    predict(
+      model_st,
+      data_test,
+      type = "class",
+      members = TRUE
+      )
+    )
+```
+
+
+```{r}
+
+map(
+  colnames(data_pred),
+  ~mean(data_pred$cvdrisk_index_merged == pull(data_pred, .x))
+) %>%
+  set_names(colnames(data_pred)) %>%
+  as_tibble() %>%
+  pivot_longer(c(everything(), -cvdrisk_index_merged))
+```
+
