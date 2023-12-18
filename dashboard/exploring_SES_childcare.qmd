@@ -1,0 +1,978 @@
+---
+title: "Exploring SES and Childcare attendance effect on learning outcomes"
+author: "Maria Prokofieva"
+title-block-banner: "images/hero.jpeg"
+format: 
+  html:
+    theme: cosmo
+    social: ["twitter", "facebook", "linkedin"]
+    code-fold: true
+    page-layout: full
+    fig_caption: yes
+---
+
+<style>
+
+.quarto-title-banner{
+  margin-block-end: 1rem;
+  position: relative;
+  margin-top: -30px;
+  height: 100%
+}
+</style>
+
+```{r}
+library(tidyverse)
+library(gt)
+library(reactable)
+library(afex)
+
+#Call emmeans
+library(emmeans)
+library(viridis)
+
+
+theme_set(theme_minimal())
+
+
+
+data<-read_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/waves4_9_childcare2.csv")
+
+#data$literacy_index2<-data$literacy_index[,1]
+
+#data$numeracy_index2<-data$numeracy_index[,1]
+#data$academic_index2<-data$academic_index[,1]
+
+#data2<-data|>select(
+#  -c(literacy_index, numeracy_index, academic_index)
+#)
+#data2|>write_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/waves4_9_childcare2.csv")
+
+```
+
+## Childcare attendace in wave 1 (age = 3-19months) 
+
+### Looked by others in wave 1
+
+```{r}
+
+data|>filter(wave==4)|>count(childcare_w1, ses_w1)|>
+  mutate(
+    childcare=case_when(
+      childcare_w1==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(childcare_w1, ses_w1)|>
+  mutate(
+    childcare=case_when(
+      childcare_w1==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(childcare, n, fill=ses_w1)
+  )+
+  geom_col()+
+  labs(
+    title="Looked by others in wave 1 (age = 3-19months)",
+    x="Non-parental care",
+    y="Number of children",
+    fill="SES"
+  )
+```
+
+
+### Daycare center attendace
+
+
+```{r}
+
+data|>filter(wave==4)|>count(childcare_daycare_w1, ses_w1)|>
+  mutate(
+    childcare=case_when(
+      childcare_daycare_w1==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(childcare_daycare_w1, ses_w1)|>
+  mutate(
+    childcare=case_when(
+      childcare_daycare_w1==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(childcare, n, fill=ses_w1)
+  )+
+  geom_col()+
+  labs(
+    title="Daycare attendance in wave 1 (age = 3-19months)",
+    x="Daycare attendance",
+    y="Number of children",
+    fill="SES"
+  )
+
+```
+
+## Childcare attendace in wave 2 (age = 2-3 years) - Looked by others in wave 2
+
+```{r}
+
+data|>filter(wave==4)|>count(childcare_w2, ses_w2)|>
+  mutate(
+    childcare=case_when(
+      childcare_w2==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(childcare_w2, ses_w2)|>
+  mutate(
+    childcare=case_when(
+      childcare_w2==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(childcare, n, fill=ses_w2)
+  )+
+  geom_col()+
+  labs(
+    title="Looked by others in wave 2 (age = 2-3 years)",
+    x="Non-parental care",
+    y="Number of children",
+    fill="SES"
+  )
+
+```
+
+### Daycare center attendace
+
+
+```{r}
+
+data|>filter(wave==4)|>count(childcare_daycare_w2, ses_w2)|>
+  mutate(
+    childcare=case_when(
+      childcare_daycare_w2==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(childcare_daycare_w2, ses_w2)|>
+  mutate(
+    childcare=case_when(
+      childcare_daycare_w2==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(childcare, n, fill=ses_w2)
+  )+
+  geom_col()+
+  labs(
+    title="Daycare attendance in wave 2 (age = 2-3 years)",
+    x="Daycare attendance",
+    y="Number of children",
+    fill="SES"
+  )
+
+```
+
+### Preschool/kinder attendace
+
+
+```{r}
+
+data|>filter(wave==4)|>count(childcare_kinder_w2, ses_w2)|>
+  mutate(
+    childcare=case_when(
+      childcare_kinder_w2==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(childcare_kinder_w2, ses_w2)|>
+  mutate(
+    childcare=case_when(
+      childcare_kinder_w2==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(childcare, n, fill=ses_w2)
+  )+
+  geom_col()+
+  labs(
+    title="Preschool/kinder attendace in wave 2 (age = 2-3 years)",
+    x="Preschool/kinder attendace",
+    y="Number of children",
+    fill="SES"
+  )
+
+```
+
+## Non-parental care - wave 3
+
+### Preschool/kinder attendace (age = 4-5 years)
+
+```{r}
+
+data|>filter(wave==4)|>count(childcare_kinder_w3, ses_w3)|>
+  mutate(
+    preschool=case_when(
+      childcare_kinder_w3==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(childcare_kinder_w3, ses_w3)|>
+  mutate(
+    preschool=case_when(
+      childcare_kinder_w3==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(preschool, n, fill=ses_w3)
+  )+
+  geom_col()+
+  labs(
+    title="Preschool/kinder attendace in wave 3 (age = 4-5 years)",
+    x="Preschool/kinder attendace",
+    y="Number of children",
+    fill="SES"
+  )
+
+```
+
+### At school (age = 4-5 years)
+
+```{r}
+
+data|>filter(wave==4)|>count(school_w3, ses_w3)|>
+  mutate(
+    at_school=case_when(
+      school_w3==1~"Yes",
+      TRUE~"No"
+    ))|>
+  reactable()
+
+data|>filter(wave==4)|>count(school_w3, ses_w3)|>
+  mutate(
+    at_school=case_when(
+      school_w3==1~"Yes",
+      TRUE~"No"
+    ))|>
+  ggplot(
+    aes(at_school, n, fill=ses_w3)
+  )+
+  geom_col()+
+  labs(
+    title="At school in wave 3 (age = 4-5 years)",
+    x="School attendace",
+    y="Number of children",
+    fill="SES"
+  )
+
+```
+
+
+## Mean Naplan scores by SES
+
+### Naplan Year 3 (wave 5)
+
+```{r}
+
+data|>filter(wave==5)|>
+  group_by(
+    ses
+  )|>
+  summarise(
+    mean_reading=round(mean(naplan_reading, na.rm=TRUE),2),
+    mean_writing=round( mean(naplan_writing, na.rm=TRUE),2),
+    mean_spelling=round(mean(naplan_spelling, na.rm=TRUE),2),
+    mean_grammar=round(mean(naplan_grammar, na.rm=TRUE),2),
+    mean_numeracy=round(mean(naplan_numeracy, na.rm=TRUE),2)
+    )|>
+  reactable()
+    
+```
+
+```{r}
+#boxplot
+
+data|>filter(wave==5)|>
+  filter(!is.na(ses))|>
+  pivot_longer(
+    cols=c(naplan_reading, naplan_writing, naplan_spelling, naplan_grammar, naplan_numeracy),
+    names_to="domain",
+    values_to="score"
+  )|>
+  ggplot(aes (x=ses, y=score, color=ses))+geom_boxplot()+
+  facet_wrap(~domain, scales="free")+
+  labs(
+    title="Naplan scores by SES - year 3",
+    x="SES",
+    y="Naplan score"
+  )
+
+```
+
+
+### Naplan Year 5 (wave 6)
+
+```{r}
+
+data|>filter(wave==6)|>
+  group_by(
+    ses
+  )|>
+  summarise(
+    mean_reading=round(mean(naplan_reading, na.rm=TRUE),2),
+    mean_writing=round( mean(naplan_writing, na.rm=TRUE),2),
+    mean_spelling=round(mean(naplan_spelling, na.rm=TRUE),2),
+    mean_grammar=round(mean(naplan_grammar, na.rm=TRUE),2),
+    mean_numeracy=round(mean(naplan_numeracy, na.rm=TRUE),2)
+    )|>
+  reactable()
+    
+```
+
+```{r}
+#boxplot
+
+data|>filter(wave==6)|>
+  filter(!is.na(ses))|>
+  pivot_longer(
+    cols=c(naplan_reading, naplan_writing, naplan_spelling, naplan_grammar, naplan_numeracy),
+    names_to="domain",
+    values_to="score"
+  )|>
+  ggplot(aes (x=ses, y=score, color=ses))+geom_boxplot()+
+  facet_wrap(~domain, scales="free")+
+  labs(
+    title="Naplan scores by SES - year 5",
+    x="SES",
+    y="Naplan score"
+  )
+
+```
+
+
+### Naplan Year 7 (wave 7)
+
+```{r}
+
+data|>filter(wave==7)|>
+  group_by(
+    ses
+  )|>
+  summarise(
+    mean_reading=round(mean(naplan_reading, na.rm=TRUE),2),
+    mean_writing=round( mean(naplan_writing, na.rm=TRUE),2),
+    mean_spelling=round(mean(naplan_spelling, na.rm=TRUE),2),
+    mean_grammar=round(mean(naplan_grammar, na.rm=TRUE),2),
+    mean_numeracy=round(mean(naplan_numeracy, na.rm=TRUE),2)
+    )|>
+  reactable()
+    
+```
+
+```{r}
+#boxplot
+
+data|>filter(wave==7)|>
+  filter(!is.na(ses))|>
+  pivot_longer(
+    cols=c(naplan_reading, naplan_writing, naplan_spelling, naplan_grammar, naplan_numeracy),
+    names_to="domain",
+    values_to="score"
+  )|>
+  ggplot(aes (x=ses, y=score, color=ses))+geom_boxplot()+
+  facet_wrap(~domain, scales="free")+
+  labs(
+    title="Naplan scores by SES - year 7",
+    x="SES",
+    y="Naplan score"
+  )
+
+```
+
+### Naplan Year 9 (wave 8)
+
+```{r}
+
+data|>filter(wave==8)|>
+  group_by(
+    ses
+  )|>
+  summarise(
+    mean_reading=round(mean(naplan_reading, na.rm=TRUE),2),
+    mean_writing=round( mean(naplan_writing, na.rm=TRUE),2),
+    mean_spelling=round(mean(naplan_spelling, na.rm=TRUE),2),
+    mean_grammar=round(mean(naplan_grammar, na.rm=TRUE),2),
+    mean_numeracy=round(mean(naplan_numeracy, na.rm=TRUE),2)
+    )|>
+  reactable()
+    
+```
+
+```{r}
+#boxplot
+
+data|>filter(wave==8)|>
+  filter(!is.na(ses))|>
+  pivot_longer(
+    cols=c(naplan_reading, naplan_writing, naplan_spelling, naplan_grammar, naplan_numeracy),
+    names_to="domain",
+    values_to="score"
+  )|>
+  ggplot(aes (x=ses, y=score, color=ses))+geom_boxplot()+
+  facet_wrap(~domain, scales="free")+
+  labs(
+    title="Naplan scores by SES - year 9",
+    x="SES",
+    y="Naplan score"
+  )
+
+```
+
+
+## Post School  (wave 9)
+
+### Enrolled in institution/ attend secondary school
+
+```{r}
+
+res<-data|>filter(wave==9)|>
+  count(
+    ses, enrolled_institution
+  )|>
+  mutate(
+    enrolled_institution=case_when(
+      enrolled_institution==1~"Secondary school",
+      enrolled_institution==2~"TAFE",
+      enrolled_institution==3~"University",
+      enrolled_institution==4~"Other",
+      TRUE~"NA"
+    )
+  )
+
+res|>reactable()
+```
+
+```{r}
+
+res|>filter(!is.na(ses))|>
+  
+  ggplot(aes(x=ses, y=n, fill=enrolled_institution))+
+  geom_bar(stat="identity", position="dodge")+
+  labs(
+    title="Post school enrolment by SES",
+    x="SES",
+    y="Number of students"
+  )
+
+```
+
+### Intended qualification
+
+```{r}
+
+res<-data|>filter(wave==9)|>
+  count(
+    ses, enrolled_degree
+  )|>
+  mutate(
+    enrolled_degree=case_when(
+      enrolled_degree==1~"Bachelor degree",
+      enrolled_degree==2~"Advanced diploma or diploma",
+      enrolled_degree==3~"Certificate",
+      enrolled_degree==4~"Other",
+      TRUE~"NA"
+    )
+  )
+
+```
+
+
+#-----------------------------
+
+## Interaction effect - Two-way Anova - Ability X SES
+
+### Academic scores (academic_index) X SES per wave
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(ses_w1) & !is.na(academic_index2) & !is.na(wave))
+
+model_1 <- aov_car(academic_index2 ~ (wave*ses_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~ses_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*ses_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = ses_w1, group = ses_w1)) +
+  geom_point(aes(color = ses_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Academic scores by SES and wave",
+    x="Wave",
+    y="Academic score"
+  )
+
+```
+
+### Literacy scores (literacy_index) X SES per wave
+
+```{r}
+
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(ses_w1) & !is.na(literacy_index2) & !is.na(wave))
+
+model_1 <- aov_car(literacy_index2 ~ (wave*ses_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~ses_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*ses_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = ses_w1, group = ses_w1)) +
+  geom_point(aes(color = ses_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+labs(
+    title="Literacy scores by SES",
+    x="Wave",
+    y="Literacy score"
+  )
+
+```
+
+### Numeracy scores (numeracy_index) X SES per wave
+
+```{r}
+
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(ses_w1) & !is.na(numeracy_index2) & !is.na(wave))
+
+model_1 <- aov_car(numeracy_index2 ~ (wave*ses_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~ses_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*ses_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = ses_w1, group = ses_w1)) +
+  geom_point(aes(color = ses_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+labs(
+    title="Numeracy scores by SES",
+    x="Wave",
+    y="Numeracy score"
+  )
+
+```
+
+----------
+
+----------
+
+## Interaction effect - Two-way Anova - Ability X Daycare attendance (w1)
+
+### Academic scores (academic_index) X S Daycare attendance (w1) 
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w1) & !is.na(academic_index2) & !is.na(wave))
+
+model_1 <- aov_car(academic_index2 ~ (wave*childcare_daycare_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
+  geom_point(aes(color = childcare_daycare_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Academic scores by Daycare in w1 and wave",
+    x="Wave",
+    y="Academic score  
+    "
+  )
+
+```
+
+### Literacy scores (literacy_index) X Daycare in w1 per wave
+
+```{r}
+
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w1) & !is.na(literacy_index2) & !is.na(wave))
+
+model_1 <- aov_car(literacy_index2 ~ (wave*childcare_daycare_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
+  geom_point(aes(color = childcare_daycare_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+labs(
+    title="Literacy scores by Daycare attendance in w1 and wave",
+    x="Wave",
+    y="Literacy score"
+  )
+
+```
+
+### Numeracy scores (numeracy_index) X Daycare w1 per wave
+
+```{r}
+
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w1) & !is.na(numeracy_index2) & !is.na(wave))
+
+model_1 <- aov_car(numeracy_index2 ~ (wave*childcare_daycare_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
+  geom_point(aes(color = childcare_daycare_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+labs(
+    title="Numeracy scores by Childare attendance in w1 and wave",
+    x="Wave",
+    y="Numeracy score"
+  )
+
+```
+
+
+----------
+
+## Interaction effect - Two-way Anova - Ability X Daycare attendance (w2)
+
+### Academic scores (academic_index) X  Daycare attendance (w2) 
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w2) & !is.na(academic_index2) & !is.na(wave))
+
+model_1 <- aov_car(academic_index2 ~ (wave*childcare_daycare_w2) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w2)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w2)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w2, group = childcare_daycare_w2)) +
+  geom_point(aes(color = childcare_daycare_w2)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Academic scores by Daycare in w2 and wave",
+    x="Wave",
+    y="Daycare attendance  
+    "
+  )
+
+```
+
+### Literacy scores (literacy_index) X Daycare in w2 per wave
+
+```{r}
+
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w2) & !is.na(literacy_index2) & !is.na(wave))
+
+model_1 <- aov_car(literacy_index2 ~ (wave*childcare_daycare_w2) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w2)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w2)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w2, group = childcare_daycare_w2)) +
+  geom_point(aes(color = childcare_daycare_w2)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+labs(
+    title="Literacy scores by Daycare attendance in w2 and wave",
+    x="Wave",
+    y="Literacy score"
+  )
+
+```
+
+### Numeracy scores (numeracy_index) X Daycare in w2 per wave
+
+```{r}
+
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w2) & !is.na(numeracy_index2) & !is.na(wave))
+
+model_1 <- aov_car(numeracy_index2 ~ (wave*childcare_daycare_w2) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w2)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w2)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w2, group = childcare_daycare_w2)) +
+  geom_point(aes(color = childcare_daycare_w2)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+labs(
+    title="Numeracy scores by Childare attendance in w2 and wave",
+    x="Wave",
+    y="Numeracy score"
+  )
+
+```
+
+-----------------
+
+
+## Interaction effect - Two-way Anova - Naplan X SES
+
+### Naplan reading X SES per wave
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(ses_w1) & !is.na(naplan_reading) & !is.na(wave))
+
+model_1 <- aov_car(naplan_reading ~ (wave*ses_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~ses_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*ses_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = ses_w1, group = ses_w1)) +
+  geom_point(aes(color = ses_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Naplan reading by SES and wave",
+    x="Wave",
+    y="Naplan score"
+  )
+
+```
+
+### Naplan numeracy X SES per wave
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(ses_w1) & !is.na(naplan_numeracy) & !is.na(wave))
+
+model_1 <- aov_car(naplan_numeracy ~ (wave*ses_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~ses_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*ses_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = ses_w1, group = ses_w1)) +
+  geom_point(aes(color = ses_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Naplan numeracy by SES and wave",
+    x="Wave",
+    y="Naplan score"
+  )
+
+```
+-----------------
+
+## Interaction effect - Two-way Anova - Naplan X Daycare w1
+
+### Naplan reading X SES per wave
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w1) & !is.na(naplan_reading) & !is.na(wave))
+
+model_1 <- aov_car(naplan_reading ~ (wave*childcare_daycare_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
+  geom_point(aes(color = childcare_daycare_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Naplan reading by Daycare w1 and wave",
+    x="Wave",
+    y="Naplan score"
+  )
+
+```
+
+### Naplan numeracy X SES per wave
+
+```{r}
+#Perform the ANOVA
+data_res<-data|>filter(!is.na(childcare_daycare_w1) & !is.na(naplan_numeracy) & !is.na(wave))
+
+model_1 <- aov_car(naplan_numeracy ~ (wave*childcare_daycare_w1) + Error(hicid/wave), 
+                    data = data_res)
+
+
+#Get the output
+summary(model_1)
+
+
+#Calculate estimated marginal means
+res_wave <- emmeans(model_1, specs = ~wave)
+res_group <- emmeans(model_1, specs = ~childcare_daycare_w1)
+res_wave_group <- emmeans(model_1, specs = ~wave*childcare_daycare_w1)
+
+#Look at the estimated means
+res_wave_group
+
+ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
+  geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
+  geom_point(aes(color = childcare_daycare_w1)) +
+  scale_color_viridis(discrete = TRUE) +
+  theme_bw()+
+  labs(
+    title="Naplan numeracy by Daycare w1 and wave",
+    x="Wave",
+    y="Naplan score"
+  )
+
+```
+-----------------
+
+
