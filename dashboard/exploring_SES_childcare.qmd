@@ -2,6 +2,9 @@
 title: "Exploring SES and Childcare attendance effect on learning outcomes"
 author: "Maria Prokofieva"
 title-block-banner: "images/hero.jpeg"
+execute:
+  echo: false
+  warning: false
 format: 
   html:
     theme: cosmo
@@ -493,6 +496,19 @@ res<-data|>filter(wave==9)|>
 
 ```
 
+```{r}
+
+res|>filter(!is.na(ses))|>
+  
+  ggplot(aes(x=ses, y=n, fill=enrolled_degree))+
+  geom_bar(stat="identity", position="dodge")+
+  labs(
+    title="Post school enrolment by SES - enrolled_degree",
+    x="SES",
+    y="Number of students"
+  )
+
+```
 
 #-----------------------------
 
@@ -523,7 +539,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = ses_w1, group = ses_w1)) +
   geom_point(aes(color = ses_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+ # scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Academic scores by SES and wave",
@@ -559,7 +575,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = ses_w1, group = ses_w1)) +
   geom_point(aes(color = ses_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+labs(
     title="Literacy scores by SES",
     x="Wave",
@@ -594,7 +610,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = ses_w1, group = ses_w1)) +
   geom_point(aes(color = ses_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+labs(
     title="Numeracy scores by SES",
     x="Wave",
@@ -634,7 +650,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
   geom_point(aes(color = childcare_daycare_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Academic scores by Daycare in w1 and wave",
@@ -671,7 +687,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
   geom_point(aes(color = childcare_daycare_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+labs(
     title="Literacy scores by Daycare attendance in w1 and wave",
     x="Wave",
@@ -706,7 +722,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
   geom_point(aes(color = childcare_daycare_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+ # scale_color_viridis(discrete = TRUE) +
   theme_bw()+labs(
     title="Numeracy scores by Childare attendance in w1 and wave",
     x="Wave",
@@ -745,7 +761,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w2, group = childcare_daycare_w2)) +
   geom_point(aes(color = childcare_daycare_w2)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Academic scores by Daycare in w2 and wave",
@@ -782,7 +798,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w2, group = childcare_daycare_w2)) +
   geom_point(aes(color = childcare_daycare_w2)) +
-  scale_color_viridis(discrete = TRUE) +
+ # scale_color_viridis(discrete = TRUE) +
   theme_bw()+labs(
     title="Literacy scores by Daycare attendance in w2 and wave",
     x="Wave",
@@ -817,7 +833,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w2, group = childcare_daycare_w2)) +
   geom_point(aes(color = childcare_daycare_w2)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+labs(
     title="Numeracy scores by Childare attendance in w2 and wave",
     x="Wave",
@@ -856,7 +872,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = ses_w1, group = ses_w1)) +
   geom_point(aes(color = ses_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+ # scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Naplan reading by SES and wave",
@@ -891,7 +907,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = ses_w1, group = ses_w1)) +
   geom_point(aes(color = ses_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+#  scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Naplan numeracy by SES and wave",
@@ -929,7 +945,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
   geom_point(aes(color = childcare_daycare_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+ # scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Naplan reading by Daycare w1 and wave",
@@ -964,7 +980,7 @@ res_wave_group
 ggplot(data = as.data.frame(res_wave_group), aes(x = wave, y = emmean)) +
   geom_line(aes(color = childcare_daycare_w1, group = childcare_daycare_w1)) +
   geom_point(aes(color = childcare_daycare_w1)) +
-  scale_color_viridis(discrete = TRUE) +
+ # scale_color_viridis(discrete = TRUE) +
   theme_bw()+
   labs(
     title="Naplan numeracy by Daycare w1 and wave",
