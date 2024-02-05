@@ -1,0 +1,728 @@
+---
+title: "Graphs"
+author: "Maria Prokofieva"
+title-block-banner: "images/hero.jpeg"
+execute:
+  echo: false
+  warning: false
+format: 
+  html:
+    theme: cosmo
+    social: ["twitter", "facebook", "linkedin"]
+    code-fold: true
+    page-layout: full
+    fig_caption: yes
+---
+
+## Childcare in w1
+
+```{r}
+library(tidyverse)
+library(haven)
+library(gt)
+library(reactable)
+library(gridExtra)
+#set theme_minimal
+theme_set(theme_minimal())
+```
+
+
+
+```{r eval=FALSE}
+w1<-read_sav("/Volumes/TOSHIBA EXT/LSAC/9.1_C2 General Release/Survey data/SPSS/waves_study/lsacgrb0.sav")
+
+waves_all<-read_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/waves_all_wide.csv")
+
+w1_graph<-w1|>select(
+  hicid,
+  wave,
+  asep, #ses
+  af03m1,# age in years
+  ascagem, # age in months
+  pcodes, #postcode
+  aabsra, #remoteness
+  astate, #state
+
+#parent work
+apw01m1, #mother full time work
+apw01m2, #mother part time work
+
+apw01f1, #father full time work
+apw01f2, #father part time work
+
+#childcare - old
+apc03a, #No. care arrangements
+apc05a, #childcare w1 daycare centre
+apc05b, #childcare w1 family
+#apc03a<>(apc05a+apc05b) = other arrangements
+#hours
+
+apc09, #total non-parental hours ** # subset of those with daycare and family
+apc09_1, #total hrs classification
+apc09_2, #total hrs classification #use this **
+
+#----------------
+
+
+#main childcare
+apc06a1, #	0/1 - Childcare 1 - F2F C8.1 - Program type
+apc07a, #	0/1 - Childcare 1 - F2F C9.1 - Care in home
+apc08a1, #	0/1 - Childcare 1 - F2F C10.1 - Carer over 18
+apc09a, #	0/1 - Childcare 1 - F2F C11.1 - Hours per week
+apc09a1,#	0/1 - Childcare 1 - F2F C11.1 - Hours per week
+apc09a2, #	0/1 - Childcare 1 - F2F C11.1 - Hours per week
+apc10a, #	0/1 - Childcare 1 - F2F C12.1 - No. days per week
+apc11a, #	0/1 - Childcare 1 - F2F C13.1 - Months SC has attended
+apc12a1, #	0/1 - Childcare 1 - F2F C14.1 - Pay for arrangement
+apc13a1, #	0/1 - Childcare 1 - F2F C15.1 - Child care benefit system
+apc14a1a, #	0/1 - Childcare 1 - F2F C16.1 - No. children present
+apc14a2a, #	0/1 - Childcare 1 - F2F C17.1 - No. paid adults present
+apc17a, #	0/1 - Childcare 1 - F2F C18.1 - Arrangement satisfaction
+
+
+
+#----------------
+#Reasons
+
+#No Care
+apc02a, #Main reason no childcare
+apc02b,
+apc02d,
+
+#--------------
+#Care - partner involvement
+apc18a, #if 1 - childcare? hours? full time work? 1 Yes; 2 No
+apc18b, #partner care hrs
+
+#parenting warmth
+aawarm, #warm parenting
+aahost, #hostile parenting
+amatsep, #maternal separation
+zpw16a, #	F2F J32/J37 - Mother in paid work in pregnancy
+
+
+
+
+#What is the main reason why child is using regular child care arrangements?
+# 1 Because of parent's work or study commitments; 2 Because of parent's sport, shopping, social or community activities; 3 To give parent a break or time alone; 4 So parent can attend to her/his own, partner's or relatives' health needs; 5 It is good for child's social development; 6 It is good for child's intellectual or language development; 7 Respite care for the child; 8 To mix with other children of the same age; 9 To establish relationships with grandparents or non-resident parents; 10 Other for parent's benefit; 11 Other for child's benefit; 12 Other unspecified
+apc16a #reasons for care
+
+#bpc05a, #childcare w1 daycare centre
+#bpc05b, #childcare w1 family
+#pc05kf#, #childcare - preschool/kinder
+#What is the main reason why child is using regular child care arrangements?
+# 1 Because of parent's work or study commitments; 2 Because of parent's sport, shopping, social or community activities; 3 To give parent a break or time alone; 4 So parent can attend to her/his own, partner's or relatives' health needs; 5 It is good for child's social development; 6 It is good for child's intellectual or language development; 7 Respite care for the child; 8 To mix with other children of the same age; 9 To establish relationships with grandparents or non-resident parents; 10 Other for parent's benefit; 11 Other for child's benefit; 12 Other unspecified
+#bpc16b #reasons
+)
+
+
+w1_graph<-w1_graph|>
+  left_join(
+    waves_all, by="hicid"
+  )
+
+
+w1_graph$ses = cut(w1_graph$asep, 
+                 breaks = quantile(w1_graph$asep, probs = c(0,0.25,0.5,0.75,1), na.rm=TRUE), 
+                 labels = c('Q1', 'Q2', 'Q3', "Q4")
+)
+
+
+academic_score_w4<-read_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/wave4_academic_score.csv")
+
+w1_graph<-w1_graph|>left_join(
+  academic_score_w4, by="hicid"
+)
+
+w1_graph|>write_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/w1_graph.csv")
+
+data_short<-read_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/waves4_9_childcare_short.csv")
+
+data_short<-w1_graph|>select(-wave)|>
+  right_join(data_short, by="hicid")
+
+
+#data_short|>write_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/waves4_9_childcare_short_naplan_w1.csv")
+
+```
+
+
+```{r}
+w1_graph<-read_csv("/Volumes/TOSHIBA EXT/LSAC/Project_data/w1_graph.csv")
+
+
+data_short<-data.table::fread("/Volumes/TOSHIBA EXT/LSAC/Project_data/waves4_9_childcare_short_naplan_w1.csv")
+
+
+```
+
+
+```{r}
+library(lme4) 
+
+#ses_w1
+#academic_index : number
+#academic_score " category"
+
+#effect of ses
+model_ses <- lmer(academic_index2 ~ ses_w1 + (1|hicid) + wave, data = data_short)
+summary(model_ses)
+
+
+#effect of apc05a - childcare 0/1/NA in w1
+model_childcare <- lmer(academic_index2 ~ apc05a + (1|hicid) + wave, data = data_short)
+summary(model_childcare)
+
+#interaction effect ses X childcare 
+
+data_short_model<-data_short|>filter(!is.na(ses_w1))|>filter(!is.na(apc05a))|>filter(!is.na(academic_index2))
+
+model_ses_childcare <- lmer(academic_index2 ~ apc05a * ses_w1 + (1|hicid) + wave, data = data_short_model)
+summary(model_ses_childcare)
+
+plot(residuals(model_ses_childcare))
+
+par(mfrow = c(1, 2))
+plot(residuals(model_ses_childcare) ~ fitted(model_ses_childcare))
+qqnorm(residuals(model_ses_childcare))
+qqline(residuals(model_ses_childcare))
+
+
+fit_all <- afex::aov_ez('hicid', 'academic_index2', data_short_model, between = c('apc05a', 'ses_w1'), within = c('wave'))
+
+
+fit_all_w1<- afex::aov_ez('hicid', 'academic_index2', data_short_model, between = c('childcare_daycare_w1', 'ses_w1'), within = c('wave'))
+
+summary(fit_all_w1)
+```
+
+
+### Learning outcomes
+```{r}
+w4<-w1_graph|>filter(!is.na(academic_index_w4))|>
+  ggplot(aes(x=ses, y=academic_index_w4, colour=factor(apc05a)))+
+  geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+  #legend labels
+  
+labs(
+title="Academic index across SES - w4",
+x="SES",
+y="Index"
+)
+
+w5<-w1_graph|>filter(!is.na(academic_index_w5))|>
+  ggplot(aes(x=ses, y=academic_index_w5, colour=factor(apc05a)))+
+  geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+labs(
+title="Academic index across SES - w5",
+x="SES",
+y="Index"
+)
+
+w6<-w1_graph|>filter(!is.na(academic_index_w6))|>
+  ggplot(aes(x=ses, y=academic_index_w6, colour=factor(apc05a)))+
+  geom_boxplot()+
+# stat_summary(fun.y=mean, geom="point", shape=10, size=1, color="red", fill="red") +
+scale_fill_brewer(palette = "Pastel1"
+)+
+labs(
+title="Academic index across SES - w6",
+x="SES",
+y="Index"
+)
+
+grid.arrange(w4, w5,  w6, nrow = 3)
+
+
+```
+
+### Childcare attendance
+
+```{r}
+w1_graph|>filter(apc05a>=0)|>
+group_by(ses, apc05a)|>
+  summarise(
+    n=n(),
+    percentage=round(
+      n/nrow(w1_graph)*100
+      ,2)
+  )|>gt()
+
+w1_graph|>filter(apc05a>=0)|>
+group_by(ses, apc05a)|>
+  summarise(
+    n=n(),
+    percentage=n/nrow(w1_graph)*100
+  )|>ungroup()|>
+  ggplot(aes(x=ses, y=n, fill=factor(apc05a)))+
+  geom_col(position = position_dodge(width = 1))+
+  scale_fill_brewer(palette = "Pastel1")+
+
+  geom_text(aes(label=n),
+            position = position_dodge(width = 1), 
+            hjust = -0.2, vjust = 0.5, size = 3) +
+  coord_flip()+
+#custom labels for fill in legen
+  scale_fill_brewer(
+    name = "Childcare attendance",
+    labels = c("No", "Yes"))+
+    #brewer colour
+#    scale_fill_brewer(palette = "Pastel1")+
+    labs(
+    title="Childcare attendance across SES",
+    x="SES",
+    y="Number of children"
+  )
+
+w1_graph|>filter(apc05a>=0)|>
+  filter(!is.na(ses ))|>
+group_by(aabsra, ses, apc05a)|>
+  summarise(
+    n=n())|>
+  mutate(percentage = round (n / sum(n) * 100),2)|>
+  ungroup()|>
+  ggplot(aes(x=aabsra, y=percentage, fill=factor(apc05a)))+
+  geom_col(position = position_dodge(width = 1))+
+  scale_fill_brewer(palette = "Pastel1")+
+
+  geom_text(aes(label=percentage),
+            position = position_dodge(width = 1), 
+            hjust = -0.2, vjust = 0.5, size = 3) +
+  coord_flip()+
+#custom labels for fill in legen
+  scale_fill_brewer(
+    name = "Childcare attendance",
+    labels = c("No", "Yes"))+
+    #brewer colour
+#    scale_fill_brewer(palette = "Pastel1")+
+    labs(
+    title="Childcare attendance across SES per remoteness",
+    x="SES",
+    y="% of children withib SES group per remoteness"
+  )+facet_wrap(~ses) 
+
+```
+
+```{r}
+#remove na in childcare attandence and ses
+
+
+w1_graph|>group_by(ses)|>
+summarise(
+nonparental_hrs=round(
+mean(apc09, na.rm=TRUE),2
+)
+)|>gt()
+
+```
+
+```{r}
+w1_graph|>
+ggplot(aes(x=ses, y=apc09, colour=ses))+
+geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+labs(
+title="Average number of hours in childcare across SES",
+x="SES",
+y="Hrs"
+)
+```
+
+
+Alternative variable only for daycare childcare
+
+
+```{r}
+w1_graph|>
+  filter(apc06a1==1)|>
+  group_by(ses)|>
+summarise(
+main_childcare_hrs_per_week=round(
+mean(apc09a, na.rm=TRUE),2
+)
+)|>reactable()
+
+```
+
+```{r}
+w1_graph|>
+  filter(apc06a1==1)|>
+ggplot(aes(x=ses, y=apc09a, colour=ses))+
+geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+labs(
+title="Average number of hours in daycare childcare across SES",
+x="SES",
+y="Hrs"
+)
+```
+
+What if it also depends on mothers work status?
+
+Mother work full/part-time
+
+If Mother does not work - no childcare!
+
+So it depends if mother work ONLY full time - and its ONLY mother, not both
+
+```{r}
+
+w1_graph|>
+  group_by(ses, mother_work_f_p)|>
+  summarise(
+    mean_hours=round(
+      mean(apc09, na.rm=TRUE)
+    ),2)|>
+    reactable()
+
+
+w1_graph|>
+filter(mother_work_f_p=="Full/part-time")|>
+ggplot(aes(x=ses, y=apc09, colour=ses))+
+geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+labs(
+title="Average number of hours in childcare across SES - mother work full/part time",
+x="SES",
+y="Hrs"
+)
+
+w1_graph|>
+filter(apw01m1==1)|>
+ggplot(aes(x=ses, y=apc09, colour=ses))+
+geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+labs(
+title="Average number of hours in childcare across SES - mother **FULL** time",
+x="SES",
+y="Hrs"
+)
+
+w1_graph|>
+  group_by(ses, parents_work_f_p)|>
+  summarise(
+    mean_hours=round(
+      mean(apc09, na.rm=TRUE)
+    ),2)|>
+    reactable()
+
+w1_graph|>
+filter(parents_work_f_p=="Full/part-time"
+)|>
+ggplot(aes(x=ses, y=apc09, colour=ses))+
+geom_boxplot()+
+scale_fill_brewer(palette = "Pastel1")+
+labs(
+title="Average number of hours in childcare across SES - mother **FULL** time",
+x="SES",
+y="Hrs"
+)
+
+```
+```{r}
+w1_graph|>count(ses, apc09_1)|>gt()
+
+
+w1_graph|>ggplot(aes(x=ses, fill=factor(apc09_1)))+
+geom_bar()+
+scale_fill_brewer(
+name = "Childcare hrs ranges",
+labels = c(
+"Less than 10 hours", "10-19 hours", "20-29 hours", "30 hours or more")
+)+
+labs(
+title="Average number of hours in childcare across SES ",
+x="SES",
+y=""
+)
+
+```
+Mother work full/part time
+```{r}
+w1_graph|>
+  filter(mother_work_f_p=="Full/part-time")|>
+  mutate(
+    apc09_1=case_when(
+      apc09<10~"Less than 10 hours",
+      apc09>=10 & apc09<20~"10-19 hours",
+      apc09>=20 & apc09<30~"20-29 hours",
+      apc09>=30~"30 hours or more"
+    )
+  )|>
+count(ses, apc09_1)|>reactable()
+
+
+w1_graph|>
+  filter(mother_work_f_p=="Full/part-time")|>
+  ggplot(aes(x=ses, fill=factor(apc09_1)))+
+geom_bar()+
+scale_fill_brewer(
+name = "Childcare hrs ranges",
+labels = c(
+"Less than 10 hours", "10-19 hours", "20-29 hours", "30 hours or more")
+)+
+labs(
+title="Average number of hours in childcare across SES - mother **FULL/Part** time",
+x="SES",
+y=""
+)
+
+```
+
+### number of childcare arrangements across ses
+
+```{r}
+w1_graph|>
+  #group_by(ses, apc03a)|>
+  count(apc03a) |>reactable()
+
+w1_graph|>
+  filter(apc03a>=0)|>
+  filter(!is.na(ses))|>
+  ggplot(aes(x=ses, fill=factor(apc03a)))+
+  geom_bar()+
+  scale_fill_brewer(
+    name = "Number of childcare arrangements",
+    labels = c(
+      "1", "2", "3", "4 or more")
+  )
+```
+
+### Main childcare arrangement per SES
+
+```{r}
+#apc06a1
+
+w1_graph|>#filter(apc06a1>0)|>
+  mutate(
+    apc06a1=case_when(
+      apc06a1==-9~"No childcare",
+apc06a1==1~"Day care centre",
+apc06a1==2~"Family day care",
+apc06a1==3~"Occasional care",
+TRUE ~ "Other"
+    )
+    )|>
+  count(apc06a1)|>
+  #calculate percentage
+  mutate(
+    perc=round(n/sum(n)*100,2)
+  )|>
+  reactable()
+  
+```
+
+```{r}
+#apc06a1
+
+w1_graph|>#filter(apc06a1>0)|>
+  mutate(
+    apc06a1=case_when(
+      apc06a1==-9~"No childcare",
+apc06a1==1~"Day care centre",
+apc06a1==2~"Family day care",
+apc06a1==3~"Occasional care",
+TRUE ~ "Other"
+    )
+    )|>
+  count(ses, apc06a1)|>
+  reactable()
+  
+```
+
+
+```{r}
+w1_graph|>#filter(apc06a1>0)|>
+  mutate(
+    apc06a1=case_when(
+      apc06a1==-9~"No childcare",
+apc06a1==1~"Day care centre",
+apc06a1==2~"Family day care",
+apc06a1==3~"Occasional care",
+TRUE ~ "Other"
+    )
+    )|>
+  ggplot(aes(x=apc06a1))+
+  geom_bar()+coord_flip()+
+  #turn labels 90 degrees
+  #theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  #style
+  scale_fill_brewer(
+    name = "Childcare arrangements",
+  )+facet_wrap(~ses)
+```
+
+
+### main reasons for childcare across ses
+```{r}
+
+#apc16a
+
+w1_graph|>
+  mutate(
+    apc16a=case_when(
+      apc16a<0~"No childcare",
+    apc16a==1~"Because of parent's work or study commitments",
+apc16a==2~"Because of parent's sport, shopping, social or community activities",
+apc16a==3~"To give parent a break or time alone",
+apc16a==4~"So parent can attend to her/his own, partner's or relatives' health needs",
+apc16a==5~"It is good for child's social development",
+apc16a==6~"It is good for child's intellectual or language development",
+apc16a==7~"Respite care for the child",
+apc16a==8~"To mix with other children of the same age",
+apc16a==9~"To establish relationships with grandparents or non-resident parents",
+TRUE ~ "Other"
+    )
+    )|>
+  count(apc16a)|>
+  #calculate percentage
+  mutate(
+    perc=round(n/sum(n)*100,2)
+  )|>
+  reactable()
+
+```
+
+```{r}
+w1_graph|>filter(apc16a>0)|>
+    mutate(
+    apc16a=case_when(
+      apc16a<0~"No childcare",
+    apc16a==1~"Because of parent's work or study commitments",
+apc16a==2~"Because of parent's sport, shopping, social or community activities",
+apc16a==3~"To give parent a break or time alone",
+apc16a==4~"So parent can attend to her/his own, partner's or relatives' health needs",
+apc16a==5~"It is good for child's social development",
+apc16a==6~"It is good for child's intellectual or language development",
+apc16a==7~"Respite care for the child",
+apc16a==8~"To mix with other children of the same age",
+apc16a==9~"To establish relationships with grandparents or non-resident parents",
+TRUE ~ "Other"
+    )
+    )|>
+  ggplot(aes(x=apc16a))+
+  geom_bar()+coord_flip()+
+  #turn labels 90 degrees
+  
+  #legend for x axis
+  
+  #theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  #style
+  scale_fill_brewer(
+    name = "Reasons for childcare attendance",
+  )+facet_wrap(~ses)
+
+```
+
+
+### main reasons for NO childcare across ses
+
+```{r}
+
+#apc16a
+
+w1_graph|>
+  mutate(
+    apc16a=case_when(
+      apc16a<0~"No childcare",
+    apc16a==1~"Because of parent's work or study commitments",
+apc16a==2~"Because of parent's sport, shopping, social or community activities",
+apc16a==3~"To give parent a break or time alone",
+apc16a==4~"So parent can attend to her/his own, partner's or relatives' health needs",
+apc16a==5~"It is good for child's social development",
+apc16a==6~"It is good for child's intellectual or language development",
+apc16a==7~"Respite care for the child",
+apc16a==8~"To mix with other children of the same age",
+apc16a==9~"To establish relationships with grandparents or non-resident parents",
+TRUE ~ "Other"
+    )
+    )|>
+  count(apc16a)|>
+  #calculate percentage
+  mutate(
+    perc=round(n/sum(n)*100,2)
+  )|>
+  reactable()
+
+```
+
+```{r}
+w1_graph|>filter(apc16a>0)|>
+    mutate(
+    apc16a=case_when(
+      apc16a<0~"No childcare",
+    apc16a==1~"Because of parent's work or study commitments",
+apc16a==2~"Because of parent's sport, shopping, social or community activities",
+apc16a==3~"To give parent a break or time alone",
+apc16a==4~"So parent can attend to her/his own, partner's or relatives' health needs",
+apc16a==5~"It is good for child's social development",
+apc16a==6~"It is good for child's intellectual or language development",
+apc16a==7~"Respite care for the child",
+apc16a==8~"To mix with other children of the same age",
+apc16a==9~"To establish relationships with grandparents or non-resident parents",
+TRUE ~ "Other"
+    )
+    )|>
+  ggplot(aes(x=apc16a))+
+  geom_bar()+coord_flip()+
+  #turn labels 90 degrees
+  
+  #legend for x axis
+  
+  #theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  #style
+  scale_fill_brewer(
+    name = "Reasons for childcare attendance",
+  )+facet_wrap(~ses)
+
+```
+
+
+
+Mother is in full-time/part-time work
+
+###Full-time work * childcare across ses
+
+```{r}
+w1_graph|>
+  mutate(
+    mother_work=case_when(
+      (apw01m1==1 |apw01m2==1) ~ "Full/part-time",
+      TRUE~"Not"
+    ))|>
+  filter(!is.na(ses))|>
+  filter(!is.na(apc05a))|>
+  filter(apc05a>=0)|>
+  group_by(mother_work, ses, apc05a)|>
+  summarise(
+    n=n()
+  )|>ungroup()|>
+  ggplot(aes(x=ses, y=n, fill=factor(mother_work)))+
+  geom_col(position = position_dodge(width = 1))+
+  scale_fill_brewer(palette = "Pastel1")+
+
+  geom_text(aes(label=n),
+            position = position_dodge(width = 1), 
+         #   hjust = -0.2, vjust = 0.5, size = 3
+            ) 
+
+
+  
+  
+  
+```
+
+
+## mother work before pregnancy
+
+mother work before pregnancy * childcare* across ses
+
+### both parent work
+calc both_parents_work var
+*childcare across ses
+
+```{r}
+mother work before pregnancy
+
